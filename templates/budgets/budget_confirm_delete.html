@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Budget{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Delete Budget</h1>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-gray-700 mb-6">
+                Are you sure you want to delete the budget limit for "{{ budget.category.name }}"?
+            </p>
+
+            <form method="post" class="flex justify-end space-x-4">
+                {% csrf_token %}
+                <a href="{% url 'budget_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-200">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

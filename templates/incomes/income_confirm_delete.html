@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Income{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center -mt-16">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Delete Income</h2>
+        </div>
+
+        <p class="text-gray-600 mb-6 text-center">
+            Are you sure you want to delete the income of ₹{{ income.amount }} for {{ income.category.name }} on {{ income.date }}?
+        </p>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
+                    Delete
+                </button>
+                <a href="{% url 'income_list' %}" class="w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200 text-center">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% for field in form %}
+<div class="space-y-2">
+    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+        {{ field.label }}
+    </label>
+    {{ field }}
+    {% if field.errors %}
+    <div class="text-red-500 text-sm">
+        {{ field.errors|join:", " }}
+    </div>
+    {% endif %}
+    {% if field.help_text %}
+    <div class="text-xs text-gray-500">
+        {{ field.help_text }}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}

@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}Income Transactions{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Income Transactions</h1>
+        <div class="flex space-x-3">
+            <button id="open-add-modal" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                Add Income
+            </button>
+            <button id="toggle-filter" class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200 flex items-center">
+                <span>Filter</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Date Range Filter Form (Hidden by Default) -->
+    <div id="filter-form" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">Filter by Date Range</h2>
+        <form method="get" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div class="flex space-x-2">
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Apply Filter
+                </button>
+                <a href="{% url 'income_list' %}" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200">
+                    Clear Filter
+                </a>
+            </div>
+        </form>
+    </div>
+
+   
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-6">
+            <div class="mb-4">
+                <p class="text-xl font-semibold text-gray-800">Total Income: <span class="text-green-600">₹{{ total|floatformat:2 }}</span></p>
+                {% if start_date and end_date %}
+                <p class="text-sm text-gray-600 mt-1">Showing income from {{ start_date|date:"F j, Y" }} to {{ end_date|date:"F j, Y" }}</p>
+                {% endif %}
+            </div>
+            {% if incomes %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Category
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for income in incomes %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ income.date }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ income.category.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                ₹{{ income.amount }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex gap-4">
+                                    <button class="edit-income-btn text-blue-600 hover:text-blue-800" data-id="{{ income.id }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="delete-income-btn text-red-600 hover:text-red-800" data-id="{{ income.id }}" 
+                                        data-amount="{{ income.amount }}" data-category="{{ income.category.name }}" 
+                                        data-date="{{ income.date }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-4">No income transactions found</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Income Modal -->
+<div id="add-income-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 m-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Add Income</h2>
+            <button class="modal-close text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <form method="post" action="{% url 'add_income' %}" class="space-y-6" id="add-income-form">
+            {% csrf_token %}
+            <!-- Form fields will be loaded via AJAX -->
+            <div id="add-income-form-fields" class="space-y-4"></div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Save
+                </button>
+                <button type="button" class="modal-close w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Income Modal -->
+<div id="edit-income-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 m-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Edit Income</h2>
+            <button class="modal-close text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <form method="post" id="edit-income-form" class="space-y-6">
+            {% csrf_token %}
+            <!-- Form fields will be loaded via AJAX -->
+            <div id="edit-income-form-fields" class="space-y-4"></div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Save
+                </button>
+                <button type="button" class="modal-close w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Income Modal -->
+<div id="delete-income-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 m-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Delete Income</h2>
+            <button class="modal-close text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <p class="text-gray-600 mb-6 text-center" id="delete-confirmation-text"></p>
+        
+        <form method="post" id="delete-income-form" class="space-y-6">
+            {% csrf_token %}
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
+                    Delete
+                </button>
+                <button type="button" class="modal-close w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functionality
+        const toggleButton = document.getElementById('toggle-filter');
+        const filterForm = document.getElementById('filter-form');
+        
+        // Check if start_date and end_date parameters exist in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasStartDate = urlParams.has('start_date');
+        const hasEndDate = urlParams.has('end_date');
+        
+        // Show filter form if there are active filters
+        if (hasStartDate && hasEndDate) {
+            filterForm.classList.remove('hidden');
+        }
+        
+        // Toggle filter form visibility when button is clicked
+        toggleButton.addEventListener('click', function() {
+            filterForm.classList.toggle('hidden');
+        });
+
+        // Modal functionality
+        const openAddModalBtn = document.getElementById('open-add-modal');
+        const addIncomeModal = document.getElementById('add-income-modal');
+        const editIncomeModal = document.getElementById('edit-income-modal');
+        const deleteIncomeModal = document.getElementById('delete-income-modal');
+        const modalCloseButtons = document.querySelectorAll('.modal-close');
+        
+        // Open Add Income Modal
+        openAddModalBtn.addEventListener('click', function() {
+            // Fetch the add income form via AJAX
+            fetch('{% url "add_income" %}')
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const formFields = doc.querySelector('form').innerHTML;
+                    
+                    // Extract only the form fields (not the buttons)
+                    const fieldsContent = formFields.split('<div class="flex space-x-4">')[0];
+                    document.getElementById('add-income-form-fields').innerHTML = fieldsContent;
+                    
+                    // Show the modal
+                    addIncomeModal.classList.remove('hidden');
+                });
+        });
+
+        // Edit Income Button Click
+        document.querySelectorAll('.edit-income-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const incomeId = this.getAttribute('data-id');
+                
+                // Set the form action
+                const editForm = document.getElementById('edit-income-form');
+                editForm.action = `/incomes/edit/${incomeId}/`;
+                
+                // Fetch the edit income form via AJAX
+                fetch(`/incomes/edit/${incomeId}/`)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const formFields = doc.querySelector('form').innerHTML;
+                        
+                        // Extract only the form fields (not the buttons)
+                        const fieldsContent = formFields.split('<div class="flex space-x-4">')[0];
+                        document.getElementById('edit-income-form-fields').innerHTML = fieldsContent;
+                        
+                        // Show the modal
+                        editIncomeModal.classList.remove('hidden');
+                    });
+            });
+        });
+
+        // Delete Income Button Click
+        document.querySelectorAll('.delete-income-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const incomeId = this.getAttribute('data-id');
+                const amount = this.getAttribute('data-amount');
+                const category = this.getAttribute('data-category');
+                const date = this.getAttribute('data-date');
+                
+                // Set confirmation text
+                document.getElementById('delete-confirmation-text').textContent = 
+                    `Are you sure you want to delete the income of ₹${amount} for ${category} on ${date}?`;
+                
+                // Set the form action
+                const deleteForm = document.getElementById('delete-income-form');
+                deleteForm.action = `/incomes/delete/${incomeId}/`;
+                
+                // Show the modal
+                deleteIncomeModal.classList.remove('hidden');
+            });
+        });
+
+        // Close Modals
+        modalCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                addIncomeModal.classList.add('hidden');
+                editIncomeModal.classList.add('hidden');
+                deleteIncomeModal.classList.add('hidden');
+            });
+        });
+
+        // Close modal when clicking outside
+        [addIncomeModal, editIncomeModal, deleteIncomeModal].forEach(modal => {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+
+        // Handle form submissions via AJAX
+        document.getElementById('add-income-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('edit-income-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('delete-income-form').addEventListener('submit', handleFormSubmit);
+
+        // NEW FUNCTIONS - Add notification system
+        // Function to show notifications
+        function showNotification(message, type = 'success') {
+            const notificationArea = document.getElementById('notification-area') || createNotificationArea();
+            
+            const notification = document.createElement('div');
+            notification.className = `bg-${type === 'success' ? 'green' : 'red'}-100 text-${type === 'success' ? 'green' : 'red'}-700 p-4 rounded-md mb-4`;
+            notification.textContent = message;
+            
+            notificationArea.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+                
+                // If no more notifications, remove the area
+                if (notificationArea.children.length === 0) {
+                    notificationArea.remove();
+                }
+            }, 5000);
+        }
+
+        // Function to create notification area if it doesn't exist
+        function createNotificationArea() {
+            const container = document.querySelector('.container');
+            const heading = document.querySelector('.container > div:first-child');
+            
+            const notificationArea = document.createElement('div');
+            notificationArea.id = 'notification-area';
+            notificationArea.className = 'mb-6';
+            
+            container.insertBefore(notificationArea, heading.nextSibling);
+            
+            return notificationArea;
+        }
+
+        // Function to handle form submissions with AJAX
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const formData = new FormData(form);
+            const url = form.action;
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success notification
+                    showNotification(data.message, 'success');
+                    
+                    // Close the modal
+                    const modal = form.closest('.fixed');
+                    modal.classList.add('hidden');
+                    
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '{% url "income_list" %}?no_messages=1';
+                    }, 500);
+                } else {
+                    // Show error in the form if available
+                    if (data.form_html) {
+                        const formFieldsContainer = form.querySelector('div[id$="-form-fields"]');
+                        if (formFieldsContainer) {
+                            formFieldsContainer.innerHTML = data.form_html;
+                        }
+                    }
+                    
+                    // Show error message if available
+                    if (data.message) {
+                        showNotification(data.message, 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred. Please try again.', 'error');
+            });
+        }
+    });
+</script>
+{% endblock %}

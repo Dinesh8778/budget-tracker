@@ -1,0 +1,40 @@
+<div class="text-center">
+    <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+    </svg>
+
+    <p class="text-gray-600 mb-6">
+        Are you sure you want to delete the expense of ₹{{ expense.amount }} for {{ expense.category.name }} on {{ expense.date }}?
+    </p>
+
+    <form method="post" action="{% url 'delete_expense' expense.id %}" class="space-y-6">
+        {% csrf_token %}
+        <div class="flex space-x-4 justify-center">
+            <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
+                Delete
+            </button>
+            <button type="button" id="cancel-delete" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle the cancel button
+    const cancelButton = document.getElementById('cancel-delete');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            // Do exactly what the close-modal button does - hide the modal container
+            const modalContainer = document.getElementById('modal-container');
+            if (modalContainer) {
+                modalContainer.classList.add('hidden');
+            } else {
+                // If we're not in a modal, redirect to the expense list
+                window.location.href = '/expenses/';
+            }
+        });
+    }
+});
+</script>

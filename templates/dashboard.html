@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <!-- Welcome Section -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome, {{ user.name }}!</h1>
+        <p class="text-gray-600 mb-4">Here's your financial overview</p>
+        
+        <!-- Quick Action Buttons with Filter Dropdown -->
+        <div class="flex flex-wrap space-x-4">
+           
+            <button id="filterToggleBtn" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-200 flex items-center">
+                <span>Filter</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Date Filter Section (Hidden by default) -->
+<div id="filterSection" class="bg-white rounded-lg shadow p-6 mb-8 hidden">
+    <h2 class="text-lg font-semibold text-gray-700 mb-4">Filter Data</h2>
+    <form id="filterForm" class="flex flex-wrap items-end gap-4">
+        <div>
+            <label for="filterType" class="block text-sm font-medium text-gray-700">Filter Type</label>
+            <select id="filterType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                <option value="month" selected>Month/Year</option>
+                <option value="date">Specific Date</option>
+            </select>
+        </div>
+        
+        <!-- Month/Year filter (shown by default) -->
+        <div id="monthYearFilter" class="flex gap-4">
+            <div>
+                <label for="month" class="block text-sm font-medium text-gray-700">Month</label>
+                <select id="month" name="month" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div>
+                <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
+                <select id="year" name="year" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    {% for year in available_years %}
+                    <option value="{{ year }}" {% if current_year == year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <!-- Specific Date filter (hidden by default) -->
+        <div id="specificDateFilter" class="hidden">
+            <label for="specific_date" class="block text-sm font-medium text-gray-700">Select Date</label>
+            <input type="date" id="specific_date" name="specific_date" value="{{ specific_date|default:'' }}" 
+                   class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+        </div>
+        
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200">
+            Apply Filter
+        </button>
+    </form>
+</div>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Income Card -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-700">Total Income</h2>
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Income</span>
+            </div>
+            <p class="text-2xl font-bold text-gray-900 mt-2">₹{{ filtered_income|floatformat:2 }}</p>
+        </div>
+
+        <!-- Expenses Card -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-700">Total Expenses</h2>
+                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">Expense</span>
+            </div>
+            <p class="text-2xl font-bold text-gray-900 mt-2">₹{{ filtered_expense|floatformat:2 }}</p>
+        </div>
+
+        <!-- Savings Card -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-700">Total Savings</h2>
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">Savings</span>
+            </div>
+            <p class="text-2xl font-bold text-gray-900 mt-2">₹{{ filtered_savings|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Charts Section - Side by Side -->
+    <div class="flex flex-col md:flex-row gap-6 mb-8">
+        <!-- Daily Income/Expense Line Chart -->
+        <div class="bg-white rounded-lg shadow p-6 w-full md:w-1/2">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Daily Income and Expenses</h3>
+            <div class="h-64">
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="bg-white rounded-lg shadow p-6 w-full md:w-1/2">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Monthly Comparison</h3>
+            <div class="h-64">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Charts Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Income By Category -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Income by Category</h3>
+            <div class="h-64">
+                <canvas id="incomeCategoryChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Expenses By Category -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Expenses by Category</h3>
+            <div class="h-64">
+                <canvas id="expenseCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+<!-- Budget Alerts -->
+{% for budget in user.budgets.all %}
+    {% if budget.get_remaining_amount <= 0 %}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <strong class="font-bold">Budget Alert!</strong>
+        <span class="block sm:inline">You have exceeded your budget for {{ budget.category.name }}.</span>
+    </div>
+    {% endif %}
+{% endfor %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Filter Toggle Button Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const filterSection = document.getElementById('filterSection');
+        
+        filterToggleBtn.addEventListener('click', function() {
+            // Toggle the visibility
+            if (filterSection.classList.contains('hidden')) {
+                filterSection.classList.remove('hidden');
+                // Change arrow direction to up
+                filterToggleBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />';
+            } else {
+                filterSection.classList.add('hidden');
+                // Change arrow direction to down
+                filterToggleBtn.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />';
+            }
+        });
+    });
+    // Filter type toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterTypeSelect = document.getElementById('filterType');
+    const monthYearFilter = document.getElementById('monthYearFilter');
+    const specificDateFilter = document.getElementById('specificDateFilter');
+    
+    filterTypeSelect.addEventListener('change', function() {
+        if (this.value === 'month') {
+            monthYearFilter.classList.remove('hidden');
+            specificDateFilter.classList.add('hidden');
+        } else {
+            monthYearFilter.classList.add('hidden');
+            specificDateFilter.classList.remove('hidden');
+        }
+    });
+    
+    // Modify form submission to include the correct parameters
+    const filterForm = document.getElementById('filterForm');
+    filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let queryParams = new URLSearchParams();
+        const filterType = document.getElementById('filterType').value;
+        
+        if (filterType === 'month') {
+            const month = document.getElementById('month').value;
+            const year = document.getElementById('year').value;
+            queryParams.append('month', month);
+            queryParams.append('year', year);
+        } else {
+            const specificDate = document.getElementById('specific_date').value;
+            if (specificDate) {
+                queryParams.append('specific_date', specificDate);
+            }
+        }
+        
+        window.location.href = '?' + queryParams.toString();
+    });
+});
+
+// Modify line chart initialization to handle specific date
+document.addEventListener('DOMContentLoaded', function() {
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    
+    // Check if we're displaying a single date
+    if (dailyData.length === 1) {
+        // For a single date, show a bar chart instead of a line chart
+        const singleDateConfig = {
+            type: 'bar',
+            data: {
+                labels: ['Income', 'Expenses'],
+                datasets: [{
+                    label: dailyData[0].date,
+                    data: [dailyData[0].income, dailyData[0].expense],
+                    backgroundColor: [
+                        'rgba(72, 187, 120, 0.7)',
+                        'rgba(237, 100, 100, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(72, 187, 120)',
+                        'rgb(237, 100, 100)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Income and Expenses for ' + dailyData[0].date
+                    }
+                }
+            }
+        };
+        new Chart(lineCtx, singleDateConfig);
+    } else {
+        // Use the regular line chart for multiple dates
+        new Chart(lineCtx, lineChartConfig);
+    }
+    
+    // Initialize the rest of the charts as before
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, barChartConfig);
+    
+    const incomeCtx = document.getElementById('incomeCategoryChart').getContext('2d');
+    new Chart(incomeCtx, incomeCategoryConfig);
+    
+    const expenseCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+    new Chart(expenseCtx, expenseCategoryConfig);
+});
+    // Line Chart Data
+    const dailyData = JSON.parse('{{ daily_data|safe }}');
+    const lineChartData = {
+        labels: dailyData.map(item => item.date),
+        datasets: [
+            {
+                label: 'Income',
+                data: dailyData.map(item => item.income),
+                borderColor: 'rgb(72, 187, 120)',
+                backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Expenses',
+                data: dailyData.map(item => item.expense),
+                borderColor: 'rgb(237, 100, 100)',
+                backgroundColor: 'rgba(237, 100, 100, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    };
+
+    const barChartData = {
+        labels: JSON.parse('{{ months_labels|safe }}'),
+        datasets: [
+            {
+                label: 'Income',
+                data: JSON.parse('{{ monthly_income|safe }}'),
+                backgroundColor: 'rgba(72, 187, 120, 0.7)',
+                borderColor: 'rgb(72, 187, 120)',
+                borderWidth: 1
+            },
+            {
+                label: 'Expenses',
+                data: JSON.parse('{{ monthly_expenses|safe }}'),
+                backgroundColor: 'rgba(237, 100, 100, 0.7)',
+                borderColor: 'rgb(237, 100, 100)',
+                borderWidth: 1
+            },
+            {
+                label: 'Savings',
+                data: JSON.parse('{{ monthly_savings|safe }}'),
+                backgroundColor: 'rgba(66, 153, 225, 0.7)',
+                borderColor: 'rgb(66, 153, 225)',
+                borderWidth: 1
+            }
+        ]
+    };
+
+    const incomeCategoryData = {
+        labels: JSON.parse('{{ income_category_labels|safe }}'),
+        datasets: [{
+            data: JSON.parse('{{ income_category_data|safe }}'),
+            backgroundColor: [
+                'rgba(72, 187, 120, 0.7)',
+                'rgba(66, 153, 225, 0.7)',
+                'rgba(246, 173, 85, 0.7)',
+                'rgba(129, 140, 248, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(232, 121, 249, 0.7)',
+                'rgba(22, 163, 74, 0.7)',
+                'rgba(217, 70, 239, 0.7)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const expenseCategoryData = {
+        labels: JSON.parse('{{ expense_category_labels|safe }}'),
+        datasets: [{
+            data: JSON.parse('{{ expense_category_data|safe }}'),
+            backgroundColor: [
+                'rgba(237, 100, 100, 0.7)',
+                'rgba(246, 173, 85, 0.7)',
+                'rgba(129, 140, 248, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(232, 121, 249, 0.7)',
+                'rgba(22, 163, 74, 0.7)',
+                'rgba(217, 70, 239, 0.7)',
+                'rgba(220, 38, 38, 0.7)',
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Chart configurations
+    const lineChartConfig = {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    };
+
+    const barChartConfig = {
+        type: 'bar',
+        data: barChartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    };
+
+    const incomeCategoryConfig = {
+        type: 'doughnut',
+        data: incomeCategoryData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    };
+
+    const expenseCategoryConfig = {
+        type: 'doughnut',
+        data: expenseCategoryData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            }
+        }
+    };
+
+    // Initialize charts on document load
+    document.addEventListener('DOMContentLoaded', function() {
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, lineChartConfig);
+
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, barChartConfig);
+
+        const incomeCtx = document.getElementById('incomeCategoryChart').getContext('2d');
+        new Chart(incomeCtx, incomeCategoryConfig);
+
+        const expenseCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+        new Chart(expenseCtx, expenseCategoryConfig);
+    });
+</script>
+{% endblock %}

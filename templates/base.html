@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyApp - {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Notification container */
+        #notification-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            max-width: 26rem;
+            min-width: 20rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+        
+        /* Individual notification */
+        .notification {
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            pointer-events: auto;
+            max-width: 100%;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Notification types */
+        .notification-success {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+        
+        .notification-error {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        
+        .notification-warning {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .notification-info {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+        
+        /* Progress bar */
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .notification-progress-bar {
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+            animation: progress 5s linear forwards;
+        }
+        
+        /* Icon containers */
+        .notification-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        /* Close button */
+        .notification-close {
+            transition: all 0.2s ease;
+        }
+        
+        .notification-close:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 50%;
+        }
+        
+        @keyframes progress {
+            0% {
+                transform: scaleX(1);
+            }
+            100% {
+                transform: scaleX(0);
+            }
+        }
+        
+        /* Staggered entrance for multiple notifications */
+        .notification:nth-child(1) { transition-delay: 0ms; }
+        .notification:nth-child(2) { transition-delay: 100ms; }
+        .notification:nth-child(3) { transition-delay: 200ms; }
+        .notification:nth-child(4) { transition-delay: 300ms; }
+        .notification:nth-child(5) { transition-delay: 400ms; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation Menu -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="{% url 'dashboard' %}" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-800">Budget Tracker</span>
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="flex space-x-4">
+                        <a href="{% url 'category_list' %}" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Categories
+                        </a>
+                        <a href="{% url 'income_list' %}" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Income
+                        </a>
+                        <a href="{% url 'expense_list' %}" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Expenses
+                        </a>
+                        <a href="{% url 'budget_list' %}" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Budgets
+                        </a>
+                        <a href="{% url 'emi_list' %}" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            EMIs
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if user.is_authenticated %}
+<div class="flex items-center space-x-4">
+    <span class="text-gray-700">{{ user.name }}</span>
+    <form method="post" action="{% url 'logout' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" 
+                class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
+            Logout
+        </button>
+    </form>
+</div>
+{% endif %}
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Notification Container -->
+    <div id="notification-container"></div>
+
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Base JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Check if a variable exists that would indicate the current page is handling its own notifications
+    const pageIsHandlingNotifications = typeof window.pageHandledNotifications !== 'undefined' && window.pageHandledNotifications === true;
+    
+    // Only process messages if the current page is not handling notifications
+    if (!pageIsHandlingNotifications) {
+        const messages = [
+            {% for message in messages %}
+            {
+                message: "{{ message }}",
+                tags: "{{ message.tags }}"
+            },
+            {% endfor %}
+        ];
+        
+        // Display each message as a toast notification
+        messages.forEach(function(msg, index) {
+            setTimeout(function() {
+                showNotification(msg.message, msg.tags);
+            }, index * 150);
+        });
+    }
+});
+
+function showNotification(message, type) {
+    // Map Django message tags to notification types
+    const typeMap = {
+        'success': 'success',
+        'error': 'error',
+        'warning': 'warning',
+        'info': 'info',
+        'debug': 'info'
+    };
+    
+    const notificationType = typeMap[type] || 'info';
+    
+    // Get notification icon based on type
+    let iconSvg = '';
+    switch(notificationType) {
+        case 'success':
+            iconSvg = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            break;
+        case 'error':
+            iconSvg = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            break;
+        case 'warning':
+            iconSvg = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+            break;
+        default: // info
+            iconSvg = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${notificationType} p-4 rounded shadow-lg flex items-start`;
+    
+    // Create notification content
+    const content = `
+        <div class="notification-icon">
+            ${iconSvg}
+        </div>
+        <div class="flex-1 pr-3">
+            <p class="font-medium">${message}</p>
+        </div>
+        <button class="notification-close p-1 ml-auto -mr-1 text-gray-500 hover:text-gray-800 focus:outline-none rounded-full" onclick="closeNotification(this.parentNode)">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+        </button>
+        <div class="notification-progress">
+            <div class="notification-progress-bar" style="background-color: currentColor;"></div>
+        </div>
+    `;
+    
+    notification.innerHTML = content;
+    
+    // Add to container
+    const container = document.getElementById('notification-container');
+    container.appendChild(notification);
+    
+    // Show notification with a small delay for animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 50);
+    
+    // Automatically remove after timeout
+    setTimeout(() => {
+        closeNotification(notification);
+    }, 5000);
+}
+
+function closeNotification(element) {
+    element.classList.remove('show');
+    setTimeout(() => {
+        if (element.parentNode) {
+            element.parentNode.removeChild(element);
+        }
+    }, 400);
+}
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

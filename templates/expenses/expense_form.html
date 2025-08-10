@@ -1,0 +1,108 @@
+<form method="post" class="space-y-4" action="{% if expense.id %}{% url 'edit_expense' expense.id %}{% else %}{% url 'add_expense' %}{% endif %}">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div class="space-y-2">
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+        <div class="text-red-500 text-sm">
+            {{ field.errors|join:", " }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="flex justify-end space-x-4">
+        <button type="button" id="cancel-form" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-200">
+            Cancel
+        </button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">
+            Save
+        </button>
+    </div>
+    
+    <!-- Hidden field for budget override confirmation -->
+    <input type="hidden" id="budget_override" name="budget_override" value="false">
+</form>
+
+<!-- Budget alert modal -->
+{% if budget_alert and budget_alert.severity == 'exceeded' %}
+<div class="mt-4 p-4 border border-red-300 bg-red-50 rounded-md">
+    <div class="text-center">
+        <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Budget Limit Exceeded</h3>
+        
+        <p class="text-gray-600 mb-6">
+            This expense will exceed your budget for <span class="font-semibold">{{ budget_alert.category }}</span> 
+            by <span class="font-semibold text-red-600">₹{{ budget_alert.overspend_amount|floatformat:2 }}</span>.
+            <br><br>
+            Your budget limit is ₹{{ budget_alert.budget_limit|floatformat:2 }}.
+        </p>
+        
+        <div class="flex justify-center space-x-4">
+            <button id="cancel-expense" type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-200">
+                Cancel
+            </button>
+            <button id="confirm-expense" type="button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200" onclick="window.confirmBudgetOverride()">
+                Add Anyway
+            </button>
+        </div>
+    </div>
+</div>
+<!-- In expense_form.html, add this script after the budget alert section -->
+<script>
+    // Add this function to handle budget override properly
+    window.confirmBudgetOverride = function() {
+        // Find the form and set the override value
+        const form = document.querySelector('form');
+        if (form) {
+            const budgetOverrideField = document.getElementById('budget_override');
+            if (budgetOverrideField) {
+                budgetOverrideField.value = 'true';
+            }
+            // Submit the form
+            form.submit();
+        }
+    };
+</script>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle the main cancel button
+    const cancelButton = document.getElementById('cancel-form');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            // Do exactly what the close-modal button does - hide the modal container
+            const modalContainer = document.getElementById('modal-container');
+            if (modalContainer) {
+                modalContainer.classList.add('hidden');
+            } else {
+                // If we're not in a modal, redirect to the expense list
+                window.location.href = '/expenses/';
+            }
+        });
+    }
+    
+    // Handle the budget alert cancel button
+    const cancelExpenseButton = document.getElementById('cancel-expense');
+    if (cancelExpenseButton) {
+        cancelExpenseButton.addEventListener('click', function() {
+            // Do exactly what the close-modal button does - hide the modal container
+            const modalContainer = document.getElementById('modal-container');
+            if (modalContainer) {
+                modalContainer.classList.add('hidden');
+            } else {
+                // If we're not in a modal, redirect to the expense list
+                window.location.href = '/expenses/';
+            }
+        });
+    }
+});
+</script>

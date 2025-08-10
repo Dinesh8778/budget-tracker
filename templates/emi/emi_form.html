@@ -1,0 +1,93 @@
+<!-- This template will be loaded inside the modal via AJAX -->
+<form method="post" class="bg-white rounded-lg">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+        <label for="{{ form.description.id_for_label }}" class="block text-gray-700 font-medium mb-2">Description</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.description.errors }}</p>
+        {% endif %}
+        <p class="text-gray-500 text-xs mt-1">Enter a descriptive name for this EMI (e.g. "Car Loan", "Home Loan")</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="{{ form.total_amount.id_for_label }}" class="block text-gray-700 font-medium mb-2">Total Amount</label>
+            {{ form.total_amount }}
+            {% if form.total_amount.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.total_amount.errors }}</p>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-1">The full loan/credit amount</p>
+        </div>
+        
+        <div>
+            <label for="{{ form.amount.id_for_label }}" class="block text-gray-700 font-medium mb-2">Payment Amount</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.amount.errors }}</p>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-1">The amount of each regular payment</p>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="{{ form.start_date.id_for_label }}" class="block text-gray-700 font-medium mb-2">Start Date</label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.start_date.errors }}</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <label for="{{ form.end_date.id_for_label }}" class="block text-gray-700 font-medium mb-2">End Date</label>
+            {{ form.end_date }}
+            {% if form.end_date.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.end_date.errors }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <label for="{{ form.frequency.id_for_label }}" class="block text-gray-700 font-medium mb-2">Payment Frequency</label>
+            {{ form.frequency }}
+            {% if form.frequency.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.frequency.errors }}</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <label for="{{ form.next_payment_date.id_for_label }}" class="block text-gray-700 font-medium mb-2">Next Payment Date</label>
+            {{ form.next_payment_date }}
+            {% if form.next_payment_date.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.next_payment_date.errors }}</p>
+            {% endif %}
+            <p class="text-gray-500 text-xs mt-1">Initial payment date (usually same as start date)</p>
+        </div>
+    </div>
+    
+    <div class="mb-6">
+        <label for="{{ form.category.id_for_label }}" class="block text-gray-700 font-medium mb-2">Category</label>
+        {{ form.category }}
+        {% if form.category.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.category.errors }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="flex justify-between">
+        <button type="button" class="flex items-center bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded transition duration-300 ease-in-out" data-bs-dismiss="modal">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Cancel
+        </button>
+        <button type="submit" class="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-300 ease-in-out">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Save
+        </button>
+    </div>
+</form>

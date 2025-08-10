@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Categories</h1>
+        <button id="openAddModal" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+            Add Category
+        </button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+            <!-- Income Categories -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Income Categories</h2>
+                {% if categories %}
+                <ul class="space-y-2">
+                    {% for category in categories %}
+                    {% if category.category_type == 'Income' %}
+                    <li class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span>{{ category.name }}</span>
+                        <div class="flex gap-4">
+                            <button class="edit-category text-blue-600 hover:text-blue-800" data-id="{{ category.id }}" data-name="{{ category.name }}" data-type="{{ category.category_type }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                </svg>
+                            </button>
+                            <button class="delete-category text-red-600 hover:text-red-800" data-id="{{ category.id }}" data-name="{{ category.name }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-500 text-center">No income categories found</p>
+                {% endif %}
+            </div>
+
+            <!-- Expense Categories -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Expense Categories</h2>
+                {% if categories %}
+                <ul class="space-y-2">
+                    {% for category in categories %}
+                    {% if category.category_type == 'Expense' %}
+                    <li class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span>{{ category.name }}</span>
+                        <div class="flex gap-4">
+                            <button class="edit-category text-blue-600 hover:text-blue-800" data-id="{{ category.id }}" data-name="{{ category.name }}" data-type="{{ category.category_type }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                                </svg>
+                            </button>
+                            <button class="delete-category text-red-600 hover:text-red-800" data-id="{{ category.id }}" data-name="{{ category.name }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-gray-500 text-center">No expense categories found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div id="addCategoryModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Add Category</h2>
+        </div>
+
+        <form id="addCategoryForm" action="{% url 'add_category' %}" method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700" for="id_name">
+                    Name
+                </label>
+                <input type="text" name="name" id="id_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700" for="id_category_type">
+                    Category Type
+                </label>
+                <select name="category_type" id="id_category_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Save
+                </button>
+                <button type="button" class="close-modal w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200 text-center">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div id="editCategoryModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Edit Category</h2>
+        </div>
+
+        <form id="editCategoryForm" method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700" for="edit_name">
+                    Name
+                </label>
+                <input type="text" name="name" id="edit_name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700" for="edit_category_type">
+                    Category Type
+                </label>
+                <select name="category_type" id="edit_category_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Save
+                </button>
+                <button type="button" class="close-modal w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200 text-center">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Category Modal -->
+<div id="deleteCategoryModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Delete Category</h2>
+        </div>
+
+        <p id="deleteConfirmText" class="text-gray-600 mb-6 text-center">
+            Are you sure you want to delete this category?
+        </p>
+
+        <form id="deleteCategoryForm" method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="flex space-x-4">
+                <button type="submit" class="w-1/2 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200">
+                    Delete
+                </button>
+                <button type="button" class="close-modal w-1/2 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition duration-200 text-center">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Category Modal
+        const addModal = document.getElementById('addCategoryModal');
+        const openAddBtn = document.getElementById('openAddModal');
+        
+        // Edit Category Modal
+        const editModal = document.getElementById('editCategoryModal');
+        const editForm = document.getElementById('editCategoryForm');
+        const editNameInput = document.getElementById('edit_name');
+        const editTypeSelect = document.getElementById('edit_category_type');
+        
+        // Delete Category Modal
+        const deleteModal = document.getElementById('deleteCategoryModal');
+        const deleteForm = document.getElementById('deleteCategoryForm');
+        const deleteConfirmText = document.getElementById('deleteConfirmText');
+        
+        // Close modal buttons
+        const closeButtons = document.querySelectorAll('.close-modal');
+        
+        // Edit category buttons
+        const editButtons = document.querySelectorAll('.edit-category');
+        
+        // Delete category buttons
+        const deleteButtons = document.querySelectorAll('.delete-category');
+        
+        // Open Add Category Modal
+        openAddBtn.addEventListener('click', function() {
+            addModal.classList.remove('hidden');
+        });
+        
+        // Open Edit Category Modal
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const type = this.dataset.type;
+                
+                editForm.action = `/categories/${id}/edit/`;
+                editNameInput.value = name;
+                editTypeSelect.value = type;
+                
+                editModal.classList.remove('hidden');
+            });
+        });
+        
+        // Open Delete Category Modal
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                
+                deleteForm.action = `/categories/${id}/delete/`;
+                deleteConfirmText.textContent = `Are you sure you want to delete the category "${name}"?`;
+                
+                deleteModal.classList.remove('hidden');
+            });
+        });
+        
+        // Close any open modal
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                addModal.classList.add('hidden');
+                editModal.classList.add('hidden');
+                deleteModal.classList.add('hidden');
+            });
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === addModal) {
+                addModal.classList.add('hidden');
+            }
+            if (event.target === editModal) {
+                editModal.classList.add('hidden');
+            }
+            if (event.target === deleteModal) {
+                deleteModal.classList.add('hidden');
+            }
+        });
+        
+        // AJAX form submissions
+        function setupAjaxForm(formElement, modalElement, successCallback) {
+            formElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close the modal
+                        modalElement.classList.add('hidden');
+                        
+                        // Show notification using the notification system from base.html
+                        showNotification(data.message, 'success');
+                        
+                        // Execute callback (e.g., refresh the list)
+                        if (successCallback) successCallback();
+                    } else {
+                        // Show error notification
+                        showNotification(data.message || 'An error occurred', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred. Please try again.', 'error');
+                });
+            });
+        }
+        
+        // Refresh the category list without reloading the page
+        function refreshCategoryList() {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Replace the grid content with the new content
+                    const currentGrid = document.querySelector('.grid');
+                    const newGrid = doc.querySelector('.grid');
+                    
+                    if (currentGrid && newGrid) {
+                        currentGrid.innerHTML = newGrid.innerHTML;
+                        
+                        // Re-attach event listeners to the new buttons
+                        attachEventListeners();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing list:', error);
+                });
+        }
+        
+        function attachEventListeners() {
+            // Re-attach edit button listeners
+            document.querySelectorAll('.edit-category').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const type = this.dataset.type;
+                    
+                    editForm.action = `/categories/${id}/edit/`;
+                    editNameInput.value = name;
+                    editTypeSelect.value = type;
+                    
+                    editModal.classList.remove('hidden');
+                });
+            });
+            
+            // Re-attach delete button listeners
+            document.querySelectorAll('.delete-category').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    
+                    deleteForm.action = `/categories/${id}/delete/`;
+                    deleteConfirmText.textContent = `Are you sure you want to delete the category "${name}"?`;
+                    
+                    deleteModal.classList.remove('hidden');
+                });
+            });
+        }
+        
+        // Setup AJAX form submissions for all three forms
+        setupAjaxForm(document.getElementById('addCategoryForm'), addModal, refreshCategoryList);
+        setupAjaxForm(document.getElementById('editCategoryForm'), editModal, refreshCategoryList);
+        setupAjaxForm(document.getElementById('deleteCategoryForm'), deleteModal, refreshCategoryList);
+    });
+</script>
+{% endblock %}

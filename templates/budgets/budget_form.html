@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="space-y-2">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-red-500 text-sm">
+                        {{ field.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                    {% if field.help_text %}
+                    <div class="text-xs text-gray-500">
+                        {{ field.help_text }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'budget_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
