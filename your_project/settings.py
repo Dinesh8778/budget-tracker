@@ -1,13 +1,28 @@
 import os
 from pathlib import Path
+import environ
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'your-secret-key-here'  # Replace with a secure key
+# Initialize environ
+env = environ.Env(
+    DEBUG=(bool, False),
+    SECRET_KEY=(str, 'django-insecure-default-secret-key-for-development'),
+    ALLOWED_HOSTS=(list, ['*']),
+)
 
-DEBUG = True
+# Read .env file if it exists
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    environ.Env.read_env(env_file)
 
-ALLOWED_HOSTS = []
+SECRET_KEY = env('SECRET_KEY')
+
+DEBUG = env('DEBUG')
+
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+
 
 INSTALLED_APPS = [
     'jazzmin',  # if you're using jazzmin
@@ -28,6 +43,7 @@ CRONJOBS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,11 +75,13 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'your_project.wsgi.application'
 
+db_url = os.environ.get('DATABASE_URL', '')
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=False if not db_url or 'sqlite' in db_url else True
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -87,7 +105,33 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Ensure the local static directory exists to avoid Django startup warnings
+LOCAL_STATIC_DIR = BASE_DIR / 'static'
+if not LOCAL_STATIC_DIR.exists():
+    os.makedirs(LOCAL_STATIC_DIR, exist_ok=True)
+
+STATICFILES_DIRS = [LOCAL_STATIC_DIR]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Add these to your settings.py
