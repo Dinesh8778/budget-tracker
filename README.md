@@ -5,71 +5,52 @@ It provides an intuitive interface for tracking transactions, categorizing expen
 
 ---
 
+## 🔗 Live Site
+You can visit the live version of this project here:
+👉 **[dinesh8778.pythonanywhere.com](http://dinesh8778.pythonanywhere.com)**
+
+---
+
 ## 📌 Features
 - **Transaction Tracking** — Add and manage income and expense records.
 - **Category Breakdown** — Organize expenses by categories for better insights.
 - **Dashboard Overview** — View total income, total expenses, and current balance in one place.
-- **Responsive Design** — Works seamlessly on both desktop and mobile devices.
 
 ---
 
 ## 🛠️ Tech Stack
 - **Backend:** Django (Python)
-- **Database:** SQLite3 (default Django database)
+- **Database:** SQLite3
 - **Frontend:** HTML, CSS, JavaScript (via Django templates)
-- **Tools:** Git, GitHub, VS Code
+- **Tools:** Git, GitHub
 
 ---
 
 ## 📂 Project Structure
-```
+```text
 budget-tracker/
-│-- myapp/           # Django application logic
-│-- templates/       # HTML templates
-│-- your_project/    # Project settings and configurations
-│-- db.sqlite3       # SQLite database file
-│-- manage.py        # Django project manager
-│-- requirements.txt # Python dependencies
-│-- README.md        # Project documentation
-```
-
----
-
-## 🚀 Getting Started
-
-### 1️⃣ Clone the repository
-```
-git clone https://github.com/Dinesh8778/budget-tracker.git
-```
-
-### 2️⃣ Create and activate a virtual environment
-```
-python -m venv venv
-source venv/bin/activate  # On macOS/Linux
-venv\Scripts\activate   # On Windows
-```
-
-### 3️⃣ Install dependencies
-```
-pip install -r requirements.txt
-```
-
-### 4️⃣ Run migrations
-```
-python manage.py migrate
-```
-
-### 5️⃣ Start the development server
-```
-python manage.py runserver
+│-- myapp/             # Django application logic
+│-- templates/         # HTML templates
+│-- your_project/      # Project settings and configurations
+│-- db.sqlite3         # SQLite database file
+│-- manage.py          # Django project manager
+│-- requirements.txt   # Python dependencies
+│-- DEPLOYMENT.md      # Step-by-step deployment guide
+│-- README.md          # Project documentation
+│-- Procfile           # Production process config
+│-- Dockerfile         # Container configuration
+│-- docker-compose.yml # Local docker orchestrator
 ```
 
 ---
 
 ## 📊 Usage
-1. Access the app at `http://127.0.0.1:8000/` in your browser.
-2. Add transactions with details like **amount**, **category**, and **date**.
-3. Check the dashboard for a **summary of your budget**.
+1. Sign up or log in to your account.
+2. Set your budget.
+3. Add income and expense transactions.
+4. Update or delete transactions as needed.
+5. View your financial dashboard and spending summary.
+6. Track your remaining budget and monitor expenses.
 
 ---
 
