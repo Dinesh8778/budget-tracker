@@ -64,6 +64,7 @@ python manage.py collectstatic --noinput
        sys.path.append(path)
 
    # Set environment variables for django-environ
+   os.environ['DJANGO_SETTINGS_MODULE'] = 'your_project.settings'
    os.environ['DEBUG'] = 'False'
    os.environ['SECRET_KEY'] = 'your-secure-secret-key-here'
    os.environ['ALLOWED_HOSTS'] = 'your-username.pythonanywhere.com'
